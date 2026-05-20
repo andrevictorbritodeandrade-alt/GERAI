@@ -4,7 +4,11 @@ import { GoogleGenAI } from '@google/genai';
 import { Search, Loader2, Dumbbell, X, Lightbulb, Image as ImageIcon, Zap, Menu } from 'lucide-react';
 import { EXERCISE_DATABASE, IMAGEN_MODEL, GEMINI_MODEL } from './constants';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
+const ai = new GoogleGenAI({ 
+  apiKey: (typeof process !== 'undefined' && process.env?.API_KEY) || 
+          (typeof process !== 'undefined' && process.env?.GEMINI_API_KEY) || 
+          "" 
+});
 
 const BACKGROUND_IMAGES = [
   "https://picsum.photos/seed/gym1/1920/1080?blur=10",
