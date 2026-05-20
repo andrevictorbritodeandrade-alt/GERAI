@@ -8,12 +8,12 @@
   "orientation": "portrait",
   "icons": [
     {
-      "src": "/src/assets/images/prescreveai_app_icon_1779313819162.png",
+      "src": "/icon.png",
       "sizes": "192x192",
       "type": "image/png"
     },
     {
-      "src": "/src/assets/images/prescreveai_app_icon_1779313819162.png",
+      "src": "/icon.png",
       "sizes": "512x512",
       "type": "image/png"
     }

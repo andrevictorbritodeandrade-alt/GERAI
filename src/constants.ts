@@ -1,9 +1,9 @@
 import { ExerciseDatabase } from './types';
 
-export const GEMINI_MODEL = "gemini-2.5-flash";
-export const GEMINI_PRO_MODEL = "gemini-2.5-pro";
-export const GEMINI_FLASH_LITE_MODEL = "gemini-2.5-flash-lite";
-export const IMAGEN_MODEL = "gemini-2.5-flash-image";
+export const GEMINI_MODEL = "gemini-2.0-flash";
+export const GEMINI_PRO_MODEL = "gemini-1.5-pro";
+export const GEMINI_FLASH_LITE_MODEL = "gemini-1.5-flash";
+export const IMAGEN_MODEL = "gemini-2.0-flash";
 export const SERIES_OPTIONS = ["A", "B", "C", "D", "E"];
 
 export const EXERCISE_DATABASE: ExerciseDatabase = {

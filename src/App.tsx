@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Search, Loader2, Dumbbell, X, Lightbulb, Image as ImageIcon, Zap, Menu } from 'lucide-react';
 import { EXERCISE_DATABASE, IMAGEN_MODEL, GEMINI_MODEL } from './constants';
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || 'AIzaSyCjJhnr4Jz1Nv7FJ7SH1bdLIZUNdeGXwdg' });
+const ai = new GoogleGenAI({ apiKey: process.env.API_KEY || '' });
 
 const BACKGROUND_IMAGES = [
   "https://picsum.photos/seed/gym1/1920/1080?blur=10",
@@ -213,8 +213,8 @@ Responda APENAS em JSON válido, sem formatação markdown ou texto adicional. U
               <Dumbbell className="w-6 h-6 text-white transform skew-x-12" />
             </div>
             <h1 className="text-3xl font-black font-display tracking-tighter italic uppercase flex items-center">
-              <span className="text-white">GER</span>
-              <span className="text-red-500">AÍ</span>
+              <span className="text-white">PRESCREVE</span>
+              <span className="text-red-500">AI</span>
             </h1>
           </div>
           
