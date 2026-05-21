@@ -4,7 +4,26 @@ import { GoogleGenAI } from '@google/genai';
 import { Search, Loader2, Dumbbell, X, Lightbulb, Image as ImageIcon, Zap, Menu } from 'lucide-react';
 import { EXERCISE_DATABASE, IMAGEN_MODEL, GEMINI_MODEL } from './constants';
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "AIzaSyCjJhnr4Jz1Nv7FJ7SH1bdLIZUNdeGXwdg";
+// Safely resolve the API key in a way that is compatible with both custom Vite and standard Vite architectures
+let resolvedApiKey = "";
+try {
+  // Try retrieving from import.meta.env (standard Vite environment)
+  const metaObj = import.meta as any;
+  if (typeof import.meta !== 'undefined' && metaObj && metaObj.env) {
+    resolvedApiKey = metaObj.env.VITE_GEMINI_API_KEY || metaObj.env.GEMINI_API_KEY || metaObj.env.VITE_API_KEY || "";
+  }
+} catch (e) {}
+
+// If not found in import.meta, try process.env
+if (!resolvedApiKey) {
+  try {
+    if (typeof process !== 'undefined' && process.env) {
+      resolvedApiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+    }
+  } catch (e) {}
+}
+
+const apiKey = resolvedApiKey || "AIzaSyCjJhnr4Jz1Nv7FJ7SH1bdLIZUNdeGXwdg";
 
 const ai = new GoogleGenAI({ apiKey });
 
@@ -87,6 +106,7 @@ export default function App() {
   
   const [selectedExercise, setSelectedExercise] = useState<{name: string, muscle: string} | null>(null);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
   const [analysis, setAnalysis] = useState<{ tecnicaAplicada: string; impactoFisiologico: string[] } | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -112,6 +132,7 @@ export default function App() {
     setSelectedExercise({ name: exerciseName, muscle });
     setGeneratedImage(null);
     setAnalysis(null);
+    setImageError(null);
     setIsGenerating(true);
 
     try {
@@ -171,9 +192,12 @@ Responda APENAS em JSON válido, sem formatação markdown ou texto adicional. U
         if (base64Data) {
           setGeneratedImage(`data:image/png;base64,${base64Data}`);
         } else {
+          setImageError("A resposta da IA não conteve dados de imagem (inlineData). Verifique as configurações de cota ou modelo.");
           console.error("Nenhuma imagem gerada nos candidatos.", result);
         }
       } else {
+        const errMsg = imgRes.reason?.message || imgRes.reason?.toString() || "Erro desconhecido";
+        setImageError(`Erro na API de Imagem: ${errMsg}`);
         console.error("Falha na geração da imagem:", imgRes.reason);
       }
 
@@ -413,9 +437,12 @@ Responda APENAS em JSON válido, sem formatação markdown ou texto adicional. U
                     {generatedImage ? (
                       <img src={generatedImage} alt={selectedExercise.name} className="w-full h-full object-cover" />
                     ) : (
-                      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-600">
-                        <ImageIcon className="w-12 h-12 mb-4 opacity-50" />
-                        <p>Não foi possível gerar a imagem.</p>
+                      <div className="w-full h-full flex flex-col items-center justify-center text-zinc-500 px-4 text-center">
+                        <ImageIcon className="w-12 h-12 mb-2 text-red-500/80 drop-shadow-[0_0_8px_rgba(239,68,68,0.3)] animate-pulse" />
+                        <p className="text-zinc-300 font-medium text-sm sm:text-base">{imageError || "Não foi possível gerar a imagem."}</p>
+                        <p className="text-xs text-zinc-650 mt-1 max-w-lg font-mono">
+                          Veja se configurou ou importou a API Key (GEMINI_API_KEY) e se o modelo IMAGEN_MODEL foi definido corretamente na outra aplicação.
+                        </p>
                       </div>
                     )}
                     {/* "LIVE BIOMECHANIC FEED" overlay */}
