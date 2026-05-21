@@ -4,7 +4,7 @@ import { GoogleGenAI } from '@google/genai';
 import { Search, Loader2, Dumbbell, X, Lightbulb, Image as ImageIcon, Zap, Menu } from 'lucide-react';
 import { EXERCISE_DATABASE, IMAGEN_MODEL, GEMINI_MODEL } from './constants';
 
-const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "";
+const apiKey = process.env.GEMINI_API_KEY || process.env.API_KEY || "AIzaSyCjJhnr4Jz1Nv7FJ7SH1bdLIZUNdeGXwdg";
 
 const ai = new GoogleGenAI({ apiKey });
 
@@ -115,6 +115,7 @@ export default function App() {
     setIsGenerating(true);
 
     try {
+      console.log("Iniciando geração para:", exerciseName);
       let benchInstructions = "";
       const upperName = exerciseName.toUpperCase();
       if (upperName.includes("DECLINADO")) {
@@ -138,7 +139,7 @@ Responda APENAS em JSON válido, sem formatação markdown ou texto adicional. U
 }`;
 
       // Run both Image and Text generations in parallel
-      const [imgRes, textRes] = await Promise.all([
+      const [imgRes, textRes] = await Promise.allSettled([
         ai.models.generateContent({
           model: IMAGEN_MODEL,
           contents: { parts: [{ text: imgPrompt }] },
@@ -155,31 +156,47 @@ Responda APENAS em JSON válido, sem formatação markdown ou texto adicional. U
         })
       ]);
 
-      let base64Data = null;
-      const parts = imgRes.candidates?.[0]?.content?.parts || [];
-      for (const part of parts) {
-        if (part.inlineData) {
-          base64Data = part.inlineData.data;
-          break;
+      // Process Image Result
+      if (imgRes.status === 'fulfilled') {
+        const result = imgRes.value;
+        let base64Data = null;
+        const parts = result.candidates?.[0]?.content?.parts || [];
+        for (const part of parts) {
+          if (part.inlineData) {
+            base64Data = part.inlineData.data;
+            break;
+          }
         }
-      }
 
-      if (base64Data) {
-        setGeneratedImage(`data:image/png;base64,${base64Data}`);
+        if (base64Data) {
+          setGeneratedImage(`data:image/png;base64,${base64Data}`);
+        } else {
+          console.error("Nenhuma imagem gerada nos candidatos.", result);
+        }
       } else {
-        console.error("No image generated.");
+        console.error("Falha na geração da imagem:", imgRes.reason);
       }
 
-      const rawText = textRes.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
-      try {
-        const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsedData = JSON.parse(cleaned);
-        setAnalysis(parsedData);
-      } catch (err) {
-        console.error("Failed to parse analysis JSON:", err);
+      // Process Text Result
+      if (textRes.status === 'fulfilled') {
+        const result = textRes.value;
+        const rawText = result.candidates?.[0]?.content?.parts?.[0]?.text || "{}";
+        try {
+          const cleaned = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          const parsedData = JSON.parse(cleaned);
+          setAnalysis(parsedData);
+        } catch (err) {
+          console.error("Falha ao analisar JSON da análise:", err, "Texto bruto:", rawText);
+          setAnalysis({
+            tecnicaAplicada: "A análise técnica detalhada não pode ser carregada no momento.",
+            impactoFisiologico: ["Benefício fisiológico principal.", "Foco muscular secundário."]
+          });
+        }
+      } else {
+        console.error("Falha na geração da análise:", textRes.reason);
         setAnalysis({
-          tecnicaAplicada: "A análise técnica detalhada não pode ser carregada no momento.",
-          impactoFisiologico: ["Benefício fisiológico principal.", "Foco muscular secundário."]
+          tecnicaAplicada: "Erro de conexão com o servidor de IA.",
+          impactoFisiologico: ["Não foi possível sintetizar a análise."]
         });
       }
       
